@@ -159,7 +159,7 @@ const NoteCard: React.FC<NoteCardProps> = ({
     >
       <div className="flex justify-between items-start mb-3 select-none">
         <h3 className="font-bold text-lg leading-tight truncate pr-8">
-          {note.title || "Untitled"}
+          {note.title}
         </h3>
         <button
           onClick={(e) => {
