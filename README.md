@@ -1,6 +1,6 @@
 # Draggable Notes
 
-A beautiful, interactive sticky notes application with drag-and-drop functionality and persistent storage per browser. In mobile browser, long press the note to drag it!
+A beautiful, interactive sticky notes application with drag-and-drop functionality and persistent storage per browser. In mobile browser, long press the note to drag it! Now you can also export/import as a JSON file!
 
 ![main](./img/main.png)
 ![create](./img/create.png)
@@ -15,6 +15,7 @@ A beautiful, interactive sticky notes application with drag-and-drop functionali
 - Search: Use the search bar to find specific notes
 - Filter: Click color tabs to filter notes by color
 - Delete: Hover over a note and click the X button to remove it
+- Import and Export: carry your thoughts anywhere
 
 ## Technologies
 
