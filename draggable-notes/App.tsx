@@ -224,45 +224,9 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        {/* Filter Tabs with Import/Export and Clear All Buttons */}
-        <div className="flex items-center justify-between gap-4 pb-4 pointer-events-auto">
-          <div className="flex gap-2 overflow-x-auto no-scrollbar">
-            <button
-              onClick={() => setFilterColor("all")}
-              className={`px-3 py-1 rounded-full text-[10px] md:text-xs font-bold transition-all whitespace-nowrap ${
-                filterColor === "all"
-                  ? "bg-slate-900 text-white"
-                  : "bg-white text-slate-500 shadow-sm"
-              }`}
-            >
-              All
-            </button>
-            {(
-              [
-                "yellow",
-                "blue",
-                "green",
-                "pink",
-                "purple",
-                "orange",
-                "gray",
-              ] as NoteColor[]
-            ).map((c) => (
-              <button
-                key={c}
-                onClick={() => setFilterColor(c)}
-                className={`px-3 py-1 rounded-full text-[10px] md:text-xs font-bold transition-all capitalize border border-transparent whitespace-nowrap ${
-                  filterColor === c
-                    ? "bg-slate-900 text-white"
-                    : "bg-white text-slate-500 shadow-sm"
-                }`}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-2">
+        {/* Import/Export/Clear Actions Row */}
+        <div className="flex items-center justify-between gap-3 pb-3 pointer-events-auto">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar flex-1">
             {/* Import Button */}
             <button
               onClick={() => fileInputRef.current?.click()}
@@ -332,6 +296,43 @@ const App: React.FC = () => {
               </button>
             )}
           </div>
+        </div>
+
+        {/* Filter Tabs */}
+        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-4 pointer-events-auto">
+          <button
+            onClick={() => setFilterColor("all")}
+            className={`px-3 py-1 rounded-full text-[10px] md:text-xs font-bold transition-all whitespace-nowrap ${
+              filterColor === "all"
+                ? "bg-slate-900 text-white"
+                : "bg-white text-slate-500 shadow-sm"
+            }`}
+          >
+            All
+          </button>
+          {(
+            [
+              "yellow",
+              "blue",
+              "green",
+              "pink",
+              "purple",
+              "orange",
+              "gray",
+            ] as NoteColor[]
+          ).map((c) => (
+            <button
+              key={c}
+              onClick={() => setFilterColor(c)}
+              className={`px-3 py-1 rounded-full text-[10px] md:text-xs font-bold transition-all capitalize border border-transparent whitespace-nowrap ${
+                filterColor === c
+                  ? "bg-slate-900 text-white"
+                  : "bg-white text-slate-500 shadow-sm"
+              }`}
+            >
+              {c}
+            </button>
+          ))}
         </div>
       </div>
 
