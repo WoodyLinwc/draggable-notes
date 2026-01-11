@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { Note, NoteColor } from "./types";
 import { storageService } from "./services/storageService";
 import NoteCard from "./components/NoteCard";
@@ -10,6 +10,7 @@ const App: React.FC = () => {
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterColor, setFilterColor] = useState<NoteColor | "all">("all");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Track max Z index for layering
   const maxZIndex = useMemo(() => {
@@ -80,6 +81,66 @@ const App: React.FC = () => {
     setShowClearConfirm(false);
   };
 
+  // Export notes to JSON file
+  const handleExport = () => {
+    const dataStr = JSON.stringify(notes, null, 2);
+    const dataBlob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `draggable-notes-${
+      new Date().toISOString().split("T")[0]
+    }.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // Import notes from JSON file
+  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const importedNotes = JSON.parse(e.target?.result as string) as Note[];
+
+        // Validate the imported data
+        if (!Array.isArray(importedNotes)) {
+          alert("Invalid file format. Please upload a valid notes JSON file.");
+          return;
+        }
+
+        // Merge with existing notes or replace (you can add a confirmation dialog here)
+        const confirmed = window.confirm(
+          `Import ${importedNotes.length} note(s)? This will add them to your existing notes.`
+        );
+
+        if (confirmed) {
+          // Regenerate IDs to avoid conflicts with existing notes
+          const notesWithNewIds = importedNotes.map((note) => ({
+            ...note,
+            id: Math.random().toString(36).substr(2, 9),
+            zIndex: maxZIndex + 1,
+          }));
+
+          setNotes([...notes, ...notesWithNewIds]);
+        }
+      } catch (error) {
+        alert("Error reading file. Please make sure it's a valid JSON file.");
+        console.error("Import error:", error);
+      }
+    };
+    reader.readAsText(file);
+
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   const filteredNotes = useMemo(() => {
     return notes.filter((n) => {
       const titleMatch = n.title
@@ -96,6 +157,15 @@ const App: React.FC = () => {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-slate-50">
+      {/* Hidden file input for import */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json"
+        onChange={handleImport}
+        className="hidden"
+      />
+
       {/* Navigation UI - Lowered Z-index to avoid overlapping modals */}
       <div className="relative z-[10] px-4 md:px-8 max-w-7xl mx-auto pointer-events-none">
         <header className="pt-8 pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4 pointer-events-auto">
@@ -154,7 +224,7 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        {/* Filter Tabs with Clear All Button */}
+        {/* Filter Tabs with Import/Export and Clear All Buttons */}
         <div className="flex items-center justify-between gap-4 pb-4 pointer-events-auto">
           <div className="flex gap-2 overflow-x-auto no-scrollbar">
             <button
@@ -192,10 +262,12 @@ const App: React.FC = () => {
             ))}
           </div>
 
-          {notes.length > 0 && (
+          <div className="flex items-center gap-2">
+            {/* Import Button */}
             <button
-              onClick={() => setShowClearConfirm(true)}
-              className="flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-600 hover:bg-red-100 rounded-full text-[10px] md:text-xs font-bold transition-all whitespace-nowrap shadow-sm border border-red-200"
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-full text-[10px] md:text-xs font-bold transition-all whitespace-nowrap shadow-sm border border-blue-200"
+              title="Import notes"
             >
               <svg
                 className="w-3 h-3"
@@ -207,12 +279,59 @@ const App: React.FC = () => {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth="2"
-                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
                 />
               </svg>
-              Clear All
+              Import
             </button>
-          )}
+
+            {/* Export Button */}
+            {notes.length > 0 && (
+              <button
+                onClick={handleExport}
+                className="flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-600 hover:bg-green-100 rounded-full text-[10px] md:text-xs font-bold transition-all whitespace-nowrap shadow-sm border border-green-200"
+                title="Export notes"
+              >
+                <svg
+                  className="w-3 h-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
+                  />
+                </svg>
+                Export
+              </button>
+            )}
+
+            {/* Clear All Button */}
+            {notes.length > 0 && (
+              <button
+                onClick={() => setShowClearConfirm(true)}
+                className="flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-600 hover:bg-red-100 rounded-full text-[10px] md:text-xs font-bold transition-all whitespace-nowrap shadow-sm border border-red-200"
+              >
+                <svg
+                  className="w-3 h-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+                Clear All
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
